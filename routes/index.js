@@ -1,12 +1,28 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const expressjwt = require('express-jwt');
 const router = express.Router();
 require('dotenv').config();
 
-const jwtCheck = expressjwt({
-   secret: process.env.JWT_SECRET_KEY
-});
+const jwtCheck = (req,res,next) => {
+   const authHeader = req.headers.authorization;
+
+   if (authHeader) {
+      const token = authHeader.split(' ')[1]
+
+      jwt.verify(token, process.env.JWT_SECRET_KEY, (err,payload)=>{
+         if (err) {
+            return res.sendStatus(403);
+         }
+
+         req.payload = payload;
+         res.send(req.payload);
+         next();
+      });
+   }
+   else {
+      res.sendStatus(401);
+   }
+};
 
 /////////////////////// route middleware ///////////////////////////
 
